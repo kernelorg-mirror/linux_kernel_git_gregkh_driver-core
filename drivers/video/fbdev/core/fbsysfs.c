@@ -457,7 +457,7 @@ int fb_device_create(struct fb_info *fb_info)
 	dev_t devt = MKDEV(FB_MAJOR, node);
 	int ret;
 
-	fb_info->dev = device_create_with_groups(fb_class, fb_info->device, devt, fb_info,
+	fb_info->dev = device_create_with_groups(&fb_class, fb_info->device, devt, fb_info,
 						 fb_device_groups, "fb%d", node);
 	if (IS_ERR(fb_info->dev)) {
 		/* Not fatal */
@@ -476,6 +476,6 @@ void fb_device_destroy(struct fb_info *fb_info)
 	if (!fb_info->dev)
 		return;
 
-	device_destroy(fb_class, devt);
+	device_destroy(&fb_class, devt);
 	fb_info->dev = NULL;
 }

@@ -28,7 +28,9 @@
 
 #define FBPIXMAPSIZE	(1024 * 8)
 
-struct class *fb_class;
+const struct class fb_class = {
+	.name = "graphics",
+};
 
 DEFINE_MUTEX(registration_lock);
 struct fb_info *registered_fb[FB_MAX] __read_mostly;
@@ -665,11 +667,10 @@ static int __init fbmem_init(void)
 {
 	int ret;
 
-	fb_class = class_create("graphics");
-	if (IS_ERR(fb_class)) {
-		ret = PTR_ERR(fb_class);
+	ret = class_register(&fb_class);
+	if (ret) {
 		pr_err("Unable to create fb class; errno = %d\n", ret);
-		goto err_fb_class;
+		return ret;
 	}
 
 	ret = fb_init_procfs();
@@ -687,9 +688,7 @@ static int __init fbmem_init(void)
 err_fb_cleanup_procfs:
 	fb_cleanup_procfs();
 err_class_destroy:
-	class_destroy(fb_class);
-err_fb_class:
-	fb_class = NULL;
+	class_unregister(&fb_class);
 	return ret;
 }
 
@@ -699,7 +698,7 @@ static void __exit fbmem_exit(void)
 	fb_console_exit();
 	fb_unregister_chrdev();
 	fb_cleanup_procfs();
-	class_destroy(fb_class);
+	class_unregister(&fb_class);
 }
 
 module_init(fbmem_init);
