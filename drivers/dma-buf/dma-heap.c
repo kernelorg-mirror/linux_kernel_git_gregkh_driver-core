@@ -43,10 +43,18 @@ struct dma_heap {
 	struct cdev heap_cdev;
 };
 
+static char *dma_heap_devnode(const struct device *dev, umode_t *mode)
+{
+	return kasprintf(GFP_KERNEL, "dma_heap/%s", dev_name(dev));
+}
+
 static LIST_HEAD(heap_list);
 static DEFINE_MUTEX(heap_list_lock);
 static dev_t dma_heap_devt;
-static struct class *dma_heap_class;
+static struct class dma_heap_class = {
+	.name = DEVNAME,
+	.devnode = dma_heap_devnode,
+};
 static DEFINE_XARRAY_ALLOC(dma_heap_minors);
 
 bool __read_mostly mem_accounting;
@@ -272,7 +280,7 @@ struct dma_heap *dma_heap_add(const struct dma_heap_export_info *exp_info)
 		goto err1;
 	}
 
-	dev_ret = device_create(dma_heap_class,
+	dev_ret = device_create(&dma_heap_class,
 				NULL,
 				heap->heap_devt,
 				NULL,
@@ -302,7 +310,7 @@ struct dma_heap *dma_heap_add(const struct dma_heap_export_info *exp_info)
 	return heap;
 
 err3:
-	device_destroy(dma_heap_class, heap->heap_devt);
+	device_destroy(&dma_heap_class, heap->heap_devt);
 err2:
 	cdev_del(&heap->heap_cdev);
 err1:
@@ -313,11 +321,6 @@ err0:
 }
 EXPORT_SYMBOL_NS_GPL(dma_heap_add, "DMA_BUF_HEAP");
 
-static char *dma_heap_devnode(const struct device *dev, umode_t *mode)
-{
-	return kasprintf(GFP_KERNEL, "dma_heap/%s", dev_name(dev));
-}
-
 static int dma_heap_init(void)
 {
 	int ret;
@@ -326,12 +329,11 @@ static int dma_heap_init(void)
 	if (ret)
 		return ret;
 
-	dma_heap_class = class_create(DEVNAME);
-	if (IS_ERR(dma_heap_class)) {
+	ret = class_register(&dma_heap_class);
+	if (ret) {
 		unregister_chrdev_region(dma_heap_devt, NUM_HEAP_MINORS);
-		return PTR_ERR(dma_heap_class);
+		return ret;
 	}
-	dma_heap_class->devnode = dma_heap_devnode;
 
 	return 0;
 }
