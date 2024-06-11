@@ -107,22 +107,18 @@ static ssize_t new_id_store(struct device_driver *driver,
 			    const char *buf, size_t count)
 {
 	struct usb_serial_driver *usb_drv = to_usb_serial_driver(driver);
-	ssize_t retval = usb_store_new_id(&usb_drv->dynids, usb_drv->id_table,
-					 driver, buf, count);
+	ssize_t retval = usb_store_new_id(driver, usb_drv->id_table, buf, count);
 
 	if (retval >= 0 && usb_drv->usb_driver != NULL)
-		retval = usb_store_new_id(&usb_drv->usb_driver->dynids,
+		retval = usb_store_new_id(&usb_drv->usb_driver->driver,
 					  usb_drv->usb_driver->id_table,
-					  &usb_drv->usb_driver->driver,
 					  buf, count);
 	return retval;
 }
 
 static ssize_t new_id_show(struct device_driver *driver, char *buf)
 {
-	struct usb_serial_driver *usb_drv = to_usb_serial_driver(driver);
-
-	return usb_show_dynids(&usb_drv->dynids, buf);
+	return usb_show_dynids(driver, buf);
 }
 static DRIVER_ATTR_RW(new_id);
 
@@ -131,17 +127,6 @@ static struct attribute *usb_serial_drv_attrs[] = {
 	NULL,
 };
 ATTRIBUTE_GROUPS(usb_serial_drv);
-
-static void free_dynids(struct usb_serial_driver *drv)
-{
-	struct usb_dynid *dynid, *n;
-
-	guard(spinlock)(&usb_dynids_lock);
-	list_for_each_entry_safe(dynid, n, &drv->dynids.list, node) {
-		list_del(&dynid->node);
-		kfree(dynid);
-	}
-}
 
 const struct bus_type usb_serial_bus_type = {
 	.name =		"usb-serial",
@@ -156,7 +141,6 @@ int usb_serial_bus_register(struct usb_serial_driver *driver)
 	int retval;
 
 	driver->driver.bus = &usb_serial_bus_type;
-	INIT_LIST_HEAD(&driver->dynids.list);
 
 	retval = driver_register(&driver->driver);
 
@@ -165,7 +149,7 @@ int usb_serial_bus_register(struct usb_serial_driver *driver)
 
 void usb_serial_bus_deregister(struct usb_serial_driver *driver)
 {
-	free_dynids(driver);
+	usb_free_dynids(&driver->driver);
 	driver_unregister(&driver->driver);
 }
 

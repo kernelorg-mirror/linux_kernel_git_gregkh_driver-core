@@ -415,13 +415,9 @@ EXPORT_SYMBOL_GPL(usb_of_get_companion_dev);
 struct dentry *usb_debug_root;
 EXPORT_SYMBOL_GPL(usb_debug_root);
 
-spinlock_t usb_dynids_lock;
-EXPORT_SYMBOL_GPL(usb_dynids_lock);
-
 static int __init usb_common_init(void)
 {
 	usb_debug_root = debugfs_create_dir("usb", NULL);
-	spin_lock_init(&usb_dynids_lock);
 	ledtrig_usb_init();
 	return 0;
 }

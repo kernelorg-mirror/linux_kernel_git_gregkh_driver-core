@@ -34,17 +34,76 @@
 
 #include "usb.h"
 
+static struct list_head usb_dynids;
+static spinlock_t usb_dynids_lock;
+
+struct usb_dynids {
+	struct list_head node;
+	const struct device_driver *driver;
+	struct list_head list;
+};
+
+struct usb_dynid {
+	struct list_head node;
+	struct usb_device_id id;
+};
+
+void usb_dynids_init(void)
+{
+	spin_lock_init(&usb_dynids_lock);
+	INIT_LIST_HEAD(&usb_dynids);
+}
+
+static struct usb_dynids *usb_find_dynids(const struct device_driver *driver)
+{
+	struct usb_dynids *u;
+
+	/* Loop through the list to find if this driver has an id list already */
+	guard(spinlock)(&usb_dynids_lock);
+	list_for_each_entry(u, &usb_dynids, node) {
+		if (u->driver == driver)
+			return u;
+	}
+	return NULL;
+}
+
+static int store_id(const struct device_driver *driver, const struct usb_device_id *id)
+{
+	struct usb_dynids *u;
+	struct usb_dynid *usb_dynid;
+
+	u = usb_find_dynids(driver);
+	if (!u) {
+		/* This driver has not stored any ids yet, so make a new entry for it */
+		u = kmalloc(sizeof(*u), GFP_KERNEL);
+		if (!u)
+			return -ENOMEM;
+		u->driver = driver;
+		INIT_LIST_HEAD(&u->list);
+		guard(spinlock)(&usb_dynids_lock);
+		list_add_tail(&u->node, &usb_dynids);
+	}
+
+	/* Allocate a new entry and add it to the list of driver ids for this driver */
+	usb_dynid = kmalloc(sizeof(*usb_dynid), GFP_KERNEL);
+	if (!usb_dynid)
+		return -ENOMEM;
+
+	INIT_LIST_HEAD(&usb_dynid->node);
+	memcpy(&usb_dynid->id, id, sizeof(*id));
+	list_add_tail(&usb_dynid->node, &u->list);
+	return 0;
+}
 
 /*
  * Adds a new dynamic USBdevice ID to this driver,
  * and cause the driver to probe for all devices again.
  */
-ssize_t usb_store_new_id(struct usb_dynids *dynids,
+ssize_t usb_store_new_id(struct device_driver *driver,
 			 const struct usb_device_id *id_table,
-			 struct device_driver *driver,
 			 const char *buf, size_t count)
 {
-	struct usb_dynid *dynid;
+	struct usb_device_id new_id = {};
 	u32 idVendor = 0;
 	u32 idProduct = 0;
 	unsigned int bInterfaceClass = 0;
@@ -57,22 +116,17 @@ ssize_t usb_store_new_id(struct usb_dynids *dynids,
 	if (fields < 2)
 		return -EINVAL;
 
-	dynid = kzalloc(sizeof(*dynid), GFP_KERNEL);
-	if (!dynid)
-		return -ENOMEM;
-
-	INIT_LIST_HEAD(&dynid->node);
-	dynid->id.idVendor = idVendor;
-	dynid->id.idProduct = idProduct;
-	dynid->id.match_flags = USB_DEVICE_ID_MATCH_DEVICE;
+	new_id.idVendor = idVendor;
+	new_id.idProduct = idProduct;
+	new_id.match_flags = USB_DEVICE_ID_MATCH_DEVICE;
 	if (fields > 2 && bInterfaceClass) {
 		if (bInterfaceClass > 255) {
 			retval = -EINVAL;
 			goto fail;
 		}
 
-		dynid->id.bInterfaceClass = (u8)bInterfaceClass;
-		dynid->id.match_flags |= USB_DEVICE_ID_MATCH_INT_CLASS;
+		new_id.bInterfaceClass = (u8)bInterfaceClass;
+		new_id.match_flags |= USB_DEVICE_ID_MATCH_INT_CLASS;
 	}
 
 	if (fields > 4) {
@@ -88,16 +142,16 @@ ssize_t usb_store_new_id(struct usb_dynids *dynids,
 				break;
 
 		if (id->match_flags) {
-			dynid->id.driver_info = id->driver_info;
+			new_id.driver_info = id->driver_info;
 		} else {
 			retval = -ENODEV;
 			goto fail;
 		}
 	}
 
-	spin_lock(&usb_dynids_lock);
-	list_add_tail(&dynid->node, &dynids->list);
-	spin_unlock(&usb_dynids_lock);
+	retval = store_id(driver, &new_id);
+	if (retval)
+		return retval;
 
 	retval = driver_attach(driver);
 
@@ -106,15 +160,19 @@ ssize_t usb_store_new_id(struct usb_dynids *dynids,
 	return count;
 
 fail:
-	kfree(dynid);
 	return retval;
 }
 EXPORT_SYMBOL_GPL(usb_store_new_id);
 
-ssize_t usb_show_dynids(struct usb_dynids *dynids, char *buf)
+ssize_t usb_show_dynids(const struct device_driver *driver, char *buf)
 {
+	struct usb_dynids *dynids;
 	struct usb_dynid *dynid;
 	size_t count = 0;
+
+	dynids = usb_find_dynids(driver);
+	if (!dynids)
+		return 0;
 
 	list_for_each_entry(dynid, &dynids->list, node)
 		if (dynid->id.bInterfaceClass != 0)
@@ -130,9 +188,7 @@ EXPORT_SYMBOL_GPL(usb_show_dynids);
 
 static ssize_t new_id_show(struct device_driver *driver, char *buf)
 {
-	struct usb_driver *usb_drv = to_usb_driver(driver);
-
-	return usb_show_dynids(&usb_drv->dynids, buf);
+	return usb_show_dynids(driver, buf);
 }
 
 static ssize_t new_id_store(struct device_driver *driver,
@@ -140,7 +196,7 @@ static ssize_t new_id_store(struct device_driver *driver,
 {
 	struct usb_driver *usb_drv = to_usb_driver(driver);
 
-	return usb_store_new_id(&usb_drv->dynids, usb_drv->id_table, driver, buf, count);
+	return usb_store_new_id(driver, usb_drv->id_table, buf, count);
 }
 static DRIVER_ATTR_RW(new_id);
 
@@ -150,8 +206,8 @@ static DRIVER_ATTR_RW(new_id);
 static ssize_t remove_id_store(struct device_driver *driver, const char *buf,
 			       size_t count)
 {
+	struct usb_dynids *dynids;
 	struct usb_dynid *dynid, *n;
-	struct usb_driver *usb_driver = to_usb_driver(driver);
 	u32 idVendor;
 	u32 idProduct;
 	int fields;
@@ -160,8 +216,12 @@ static ssize_t remove_id_store(struct device_driver *driver, const char *buf,
 	if (fields < 2)
 		return -EINVAL;
 
+	dynids = usb_find_dynids(driver);
+	if (!dynids)
+		return count;
+
 	guard(spinlock)(&usb_dynids_lock);
-	list_for_each_entry_safe(dynid, n, &usb_driver->dynids.list, node) {
+	list_for_each_entry_safe(dynid, n, &dynids->list, node) {
 		struct usb_device_id *id = &dynid->id;
 
 		if ((id->idVendor == idVendor) &&
@@ -215,30 +275,44 @@ static void usb_remove_newid_files(struct usb_driver *usb_drv)
 	}
 }
 
-static void usb_free_dynids(struct usb_driver *usb_drv)
+void usb_free_dynids(const struct device_driver *drv)
 {
+	struct usb_dynids *dynids;
 	struct usb_dynid *dynid, *n;
 
+	dynids = usb_find_dynids(drv);
+	if (!dynids)
+		return;
+
 	guard(spinlock)(&usb_dynids_lock);
-	list_for_each_entry_safe(dynid, n, &usb_drv->dynids.list, node) {
+	list_for_each_entry_safe(dynid, n, &dynids->list, node) {
 		list_del(&dynid->node);
 		kfree(dynid);
 	}
+	list_del(&dynids->node);
+	kfree(dynids);
 }
+EXPORT_SYMBOL_GPL(usb_free_dynids);
 
-static const struct usb_device_id *usb_match_dynamic_id(struct usb_interface *intf,
-							const struct usb_driver *drv)
+const struct usb_device_id *usb_match_dynamic_id(struct usb_interface *intf,
+						 const struct device_driver *driver)
 {
+	struct usb_dynids *dynids;
 	struct usb_dynid *dynid;
 
+	dynids = usb_find_dynids(driver);
+	if (!dynids)
+		return NULL;
+
 	guard(spinlock)(&usb_dynids_lock);
-	list_for_each_entry(dynid, &drv->dynids.list, node) {
+	list_for_each_entry(dynid, &dynids->list, node) {
 		if (usb_match_one_id(intf, &dynid->id)) {
 			return &dynid->id;
 		}
 	}
 	return NULL;
 }
+EXPORT_SYMBOL_GPL(usb_match_dynamic_id);
 
 
 /* called from driver core with dev locked */
@@ -339,7 +413,7 @@ static int usb_probe_interface(struct device *dev)
 		return error;
 	}
 
-	id = usb_match_dynamic_id(intf, driver);
+	id = usb_match_dynamic_id(intf, &driver->driver);
 	if (!id)
 		id = usb_match_id(intf, driver->id_table);
 	if (!id)
@@ -903,7 +977,7 @@ static int usb_device_match(struct device *dev, const struct device_driver *drv)
 		if (id)
 			return 1;
 
-		id = usb_match_dynamic_id(intf, usb_drv);
+		id = usb_match_dynamic_id(intf, &usb_drv->driver);
 		if (id)
 			return 1;
 	}
@@ -1072,7 +1146,6 @@ int usb_register_driver(struct usb_driver *new_driver, struct module *owner,
 	new_driver->driver.owner = owner;
 	new_driver->driver.mod_name = mod_name;
 	new_driver->driver.dev_groups = new_driver->dev_groups;
-	INIT_LIST_HEAD(&new_driver->dynids.list);
 
 	retval = driver_register(&new_driver->driver);
 	if (retval)
@@ -1114,8 +1187,8 @@ void usb_deregister(struct usb_driver *driver)
 			usbcore_name, driver->name);
 
 	usb_remove_newid_files(driver);
+	usb_free_dynids(&driver->driver);
 	driver_unregister(&driver->driver);
-	usb_free_dynids(driver);
 }
 EXPORT_SYMBOL_GPL(usb_deregister);
 

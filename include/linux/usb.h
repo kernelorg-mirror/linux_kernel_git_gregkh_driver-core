@@ -1129,22 +1129,13 @@ static inline int usb_make_path(struct usb_device *dev, char *buf, size_t size)
 /* ----------------------------------------------------------------------- */
 
 /* Stuff for dynamic usb ids */
-extern spinlock_t usb_dynids_lock;
-struct usb_dynids {
-	struct list_head list;
-};
-
-struct usb_dynid {
-	struct list_head node;
-	struct usb_device_id id;
-};
-
-extern ssize_t usb_store_new_id(struct usb_dynids *dynids,
-				const struct usb_device_id *id_table,
-				struct device_driver *driver,
-				const char *buf, size_t count);
-
-extern ssize_t usb_show_dynids(struct usb_dynids *dynids, char *buf);
+ssize_t usb_store_new_id(struct device_driver *driver,
+			 const struct usb_device_id *id_table,
+			 const char *buf, size_t count);
+ssize_t usb_show_dynids(const struct device_driver *driver, char *buf);
+const struct usb_device_id *usb_match_dynamic_id(struct usb_interface *intf,
+						 const struct device_driver *driver);
+void usb_free_dynids(const struct device_driver *driver);
 
 /**
  * struct usb_driver - identifies USB interface driver to usbcore
@@ -1236,7 +1227,6 @@ struct usb_driver {
 	const struct usb_device_id *id_table;
 	const struct attribute_group **dev_groups;
 
-	struct usb_dynids dynids;
 	struct device_driver driver;
 	unsigned int no_dynamic_id:1;
 	unsigned int supports_autosuspend:1;

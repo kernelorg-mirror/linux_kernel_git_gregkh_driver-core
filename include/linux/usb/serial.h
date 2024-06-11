@@ -237,7 +237,6 @@ struct usb_serial_driver {
 	struct list_head	driver_list;
 	struct device_driver	driver;
 	struct usb_driver	*usb_driver;
-	struct usb_dynids	dynids;
 
 	unsigned char		num_ports;
 

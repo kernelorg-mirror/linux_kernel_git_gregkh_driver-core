@@ -89,6 +89,7 @@ extern int usb_major_init(void);
 extern void usb_major_cleanup(void);
 extern int usb_device_supports_lpm(struct usb_device *udev);
 extern int usb_port_disable(struct usb_device *udev);
+void usb_dynids_init(void);
 
 #ifdef	CONFIG_PM
 

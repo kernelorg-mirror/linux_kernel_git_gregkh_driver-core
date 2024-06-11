@@ -701,20 +701,6 @@ static struct usb_serial *create_serial(struct usb_device *dev,
 	return serial;
 }
 
-static const struct usb_device_id *match_dynamic_id(struct usb_interface *intf,
-					    struct usb_serial_driver *drv)
-{
-	struct usb_dynid *dynid;
-
-	guard(spinlock)(&usb_dynids_lock);
-	list_for_each_entry(dynid, &drv->dynids.list, node) {
-		if (usb_match_one_id(intf, &dynid->id)) {
-			return &dynid->id;
-		}
-	}
-	return NULL;
-}
-
 static const struct usb_device_id *get_iface_id(struct usb_serial_driver *drv,
 						struct usb_interface *intf)
 {
@@ -725,7 +711,7 @@ static const struct usb_device_id *get_iface_id(struct usb_serial_driver *drv,
 		dev_dbg(&intf->dev, "static descriptor matches\n");
 		goto exit;
 	}
-	id = match_dynamic_id(intf, drv);
+	id = usb_match_dynamic_id(intf, &drv->driver);
 	if (id)
 		dev_dbg(&intf->dev, "dynamic descriptor matches\n");
 exit:
