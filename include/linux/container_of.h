@@ -16,7 +16,7 @@
  * WARNING: any const qualifier of @ptr is lost.
  * Do not use container_of() in new code.
  */
-#define container_of(ptr, type, member) ({				\
+#define __container_of(ptr, type, member) ({				\
 	void *__mptr = (void *)(ptr);					\
 	static_assert(__same_type(*(ptr), ((type *)0)->member) ||	\
 		      __same_type(*(ptr), void),			\
@@ -34,8 +34,11 @@
  */
 #define container_of_const(ptr, type, member)				\
 	_Generic(ptr,							\
-		const typeof(*(ptr)) *: ((const type *)container_of(ptr, type, member)),\
-		default: ((type *)container_of(ptr, type, member))	\
+		const typeof(*(ptr)) *: ((const type *)__container_of(ptr, type, member)),\
+		default: ((type *)__container_of(ptr, type, member))	\
 	)
+
+#define container_of(ptr, type, member) container_of_const(ptr, type, member)
+
 
 #endif	/* _LINUX_CONTAINER_OF_H */
