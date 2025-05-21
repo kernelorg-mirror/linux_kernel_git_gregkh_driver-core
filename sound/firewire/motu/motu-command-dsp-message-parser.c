@@ -80,7 +80,7 @@ int snd_motu_command_dsp_message_parser_init(struct snd_motu *motu, enum cip_sfc
 #define FRAGMENTS_PER_VALUE		4
 #define VALUES_AT_IMAGE_END		0xffffffffffffffff
 
-void snd_motu_command_dsp_message_parser_parse(const struct amdtp_stream *s,
+void snd_motu_command_dsp_message_parser_parse(struct amdtp_stream *s,
 					const struct pkt_desc *desc, unsigned int count)
 {
 	struct snd_motu *motu = container_of(s, struct snd_motu, tx_stream);

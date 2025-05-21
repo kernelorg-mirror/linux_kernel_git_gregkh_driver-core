@@ -115,7 +115,7 @@ static inline struct br2684_vcc *BR2684_VCC(const struct atm_vcc *atmvcc)
 	return (struct br2684_vcc *)(atmvcc->user_back);
 }
 
-static inline struct br2684_vcc *list_entry_brvcc(const struct list_head *le)
+static inline struct br2684_vcc *list_entry_brvcc(struct list_head *le)
 {
 	return list_entry(le, struct br2684_vcc, brvccs);
 }

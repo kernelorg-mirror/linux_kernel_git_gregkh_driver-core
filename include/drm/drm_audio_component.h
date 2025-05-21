@@ -119,7 +119,7 @@ struct drm_audio_component {
 	/**
 	 * @audio_ops: Ops implemented by hda driver, called by DRM driver
 	 */
-	const struct drm_audio_component_audio_ops *audio_ops;
+	struct drm_audio_component_audio_ops *audio_ops;
 	/**
 	 * @master_bind_complete: completion held during component master binding
 	 */

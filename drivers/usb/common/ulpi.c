@@ -36,7 +36,7 @@ EXPORT_SYMBOL_GPL(ulpi_write);
 
 static int ulpi_match(struct device *dev, const struct device_driver *driver)
 {
-	struct ulpi_driver *drv = to_ulpi_driver(driver);
+	const struct ulpi_driver *drv = to_ulpi_driver(driver);
 	struct ulpi *ulpi = to_ulpi_dev(dev);
 	const struct ulpi_device_id *id;
 

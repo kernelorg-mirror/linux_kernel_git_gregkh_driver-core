@@ -257,7 +257,7 @@ static bool svc_rdma_refresh_recvs(struct svcxprt_rdma *rdma,
 				   unsigned int wanted)
 {
 	const struct ib_recv_wr *bad_wr = NULL;
-	struct svc_rdma_recv_ctxt *ctxt;
+	const struct svc_rdma_recv_ctxt *ctxt;
 	struct ib_recv_wr *recv_chain;
 	int ret;
 

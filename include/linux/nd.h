@@ -140,10 +140,7 @@ struct nd_namespace_pmem {
 	int id;
 };
 
-static inline struct nd_namespace_io *to_nd_namespace_io(const struct device *dev)
-{
-	return container_of(dev, struct nd_namespace_io, common.dev);
-}
+#define to_nd_namespace_io(__dev)	container_of_const(__dev, struct nd_namespace_io, common.dev)
 
 static inline struct nd_namespace_pmem *to_nd_namespace_pmem(const struct device *dev)
 {

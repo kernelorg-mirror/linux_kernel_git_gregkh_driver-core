@@ -397,8 +397,8 @@ waiter_clone_prio(struct rt_mutex_waiter *waiter, struct task_struct *task)
 #define task_to_waiter(p)	\
 	&(struct rt_mutex_waiter){ .tree = *task_to_waiter_node(p) }
 
-static __always_inline int rt_waiter_node_less(struct rt_waiter_node *left,
-					       struct rt_waiter_node *right)
+static __always_inline int rt_waiter_node_less(const struct rt_waiter_node *left,
+					       const struct rt_waiter_node *right)
 {
 	if (left->prio < right->prio)
 		return 1;
@@ -459,7 +459,7 @@ static inline bool rt_mutex_steal(struct rt_mutex_waiter *waiter,
 static __always_inline bool __waiter_less(struct rb_node *a, const struct rb_node *b)
 {
 	struct rt_mutex_waiter *aw = __node_2_waiter(a);
-	struct rt_mutex_waiter *bw = __node_2_waiter(b);
+	const struct rt_mutex_waiter *bw = __node_2_waiter(b);
 
 	if (rt_waiter_node_less(&aw->tree, &bw->tree))
 		return 1;

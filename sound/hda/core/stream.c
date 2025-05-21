@@ -634,7 +634,7 @@ EXPORT_SYMBOL_GPL(snd_hdac_stream_set_params);
 
 static u64 azx_cc_read(struct cyclecounter *cc)
 {
-	struct hdac_stream *azx_dev = container_of(cc, struct hdac_stream, cc);
+	const struct hdac_stream *azx_dev = container_of(cc, struct hdac_stream, cc);
 
 	return snd_hdac_chip_readl(azx_dev->bus, WALLCLK);
 }

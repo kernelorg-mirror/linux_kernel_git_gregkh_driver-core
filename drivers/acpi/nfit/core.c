@@ -1145,8 +1145,8 @@ static int __nfit_mem_init(struct acpi_nfit_desc *acpi_desc,
 static int nfit_mem_cmp(void *priv, const struct list_head *_a,
 		const struct list_head *_b)
 {
-	struct nfit_mem *a = container_of(_a, typeof(*a), list);
-	struct nfit_mem *b = container_of(_b, typeof(*b), list);
+	const struct nfit_mem *a = container_of(_a, typeof(*a), list);
+	const struct nfit_mem *b = container_of(_b, typeof(*b), list);
 	u32 handleA, handleB;
 
 	handleA = __to_nfit_memdev(a)->device_handle;

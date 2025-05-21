@@ -248,7 +248,7 @@ static const struct component_master_ops hdac_component_master_ops = {
  * Returns zero for success or a negative error code.
  */
 int snd_hdac_acomp_register_notifier(struct hdac_bus *bus,
-				    const struct drm_audio_component_audio_ops *aops)
+				    struct drm_audio_component_audio_ops *aops)
 {
 	if (!bus->audio_component)
 		return -ENODEV;
@@ -278,7 +278,7 @@ EXPORT_SYMBOL_GPL(snd_hdac_acomp_register_notifier);
  * Returns zero for success or a negative error code.
  */
 int snd_hdac_acomp_init(struct hdac_bus *bus,
-			const struct drm_audio_component_audio_ops *aops,
+			struct drm_audio_component_audio_ops *aops,
 			int (*match_master)(struct device *, int, void *),
 			size_t extra_size)
 {

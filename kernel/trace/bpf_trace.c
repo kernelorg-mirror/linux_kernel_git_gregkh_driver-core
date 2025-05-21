@@ -2967,7 +2967,7 @@ static int bpf_uprobe_multi_link_fill_link_info(const struct bpf_link *link,
 	u64 __user *uoffsets = u64_to_user_ptr(info->uprobe_multi.offsets);
 	u64 __user *upath = u64_to_user_ptr(info->uprobe_multi.path);
 	u32 upath_size = info->uprobe_multi.path_size;
-	struct bpf_uprobe_multi_link *umulti_link;
+	const struct bpf_uprobe_multi_link *umulti_link;
 	u32 ucount = info->uprobe_multi.count;
 	int err = 0, i;
 	char *p, *buf;

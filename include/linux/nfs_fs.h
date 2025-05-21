@@ -347,7 +347,7 @@ struct nfs4_copy_state {
 #define NFS_INO_ODIRECT		(12)		/* I/O setting is O_DIRECT */
 #define NFS_INO_REQ_DIR_DELEG	(13)		/* Request a directory delegation */
 
-static inline struct nfs_inode *NFS_I(const struct inode *inode)
+static inline const struct nfs_inode *NFS_I(const struct inode *inode)
 {
 	return container_of(inode, struct nfs_inode, vfs_inode);
 }
@@ -357,7 +357,7 @@ static inline struct nfs_server *NFS_SB(const struct super_block *s)
 	return (struct nfs_server *)(s->s_fs_info);
 }
 
-static inline struct nfs_fh *NFS_FH(const struct inode *inode)
+static inline const struct nfs_fh *NFS_FH(const struct inode *inode)
 {
 	return &NFS_I(inode)->fh;
 }

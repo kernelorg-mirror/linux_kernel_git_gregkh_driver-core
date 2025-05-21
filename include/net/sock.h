@@ -759,7 +759,7 @@ static inline void sk_peek_offset_fwd(struct sock *sk, int val)
 /*
  * Hashed lists helper routines
  */
-static inline struct sock *sk_entry(const struct hlist_node *node)
+static inline struct sock *sk_entry(struct hlist_node *node)
 {
 	return hlist_entry(node, struct sock, sk_node);
 }

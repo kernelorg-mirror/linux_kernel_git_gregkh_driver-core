@@ -1441,7 +1441,7 @@ static int netvsc_receive(struct net_device *ndev,
 	struct net_device_context *net_device_ctx = netdev_priv(ndev);
 	struct vmbus_channel *channel = nvchan->channel;
 	const struct vmtransfer_page_packet_header *vmxferpage_packet
-		= container_of(desc, const struct vmtransfer_page_packet_header, d);
+		= container_of(desc, struct vmtransfer_page_packet_header, d);
 	const struct nvsp_message *nvsp = hv_pkt_data(desc);
 	u32 msglen = hv_pkt_datalen(desc);
 	u16 q_idx = channel->offermsg.offer.sub_channel_index;

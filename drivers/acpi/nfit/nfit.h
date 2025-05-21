@@ -324,7 +324,7 @@ static inline void nfit_mce_unregister(void)
 int nfit_spa_type(struct acpi_nfit_system_address *spa);
 
 static inline struct acpi_nfit_memory_map *__to_nfit_memdev(
-		struct nfit_mem *nfit_mem)
+		const struct nfit_mem *nfit_mem)
 {
 	if (nfit_mem->memdev_dcr)
 		return nfit_mem->memdev_dcr;

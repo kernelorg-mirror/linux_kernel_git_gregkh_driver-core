@@ -211,7 +211,7 @@ static int cavium_ptp_enable(struct ptp_clock_info *ptp_info,
 
 static u64 cavium_ptp_cc_read(struct cyclecounter *cc)
 {
-	struct cavium_ptp *clock =
+	const struct cavium_ptp *clock =
 		container_of(cc, struct cavium_ptp, cycle_counter);
 
 	return readq(clock->reg_base + PTP_CLOCK_HI);

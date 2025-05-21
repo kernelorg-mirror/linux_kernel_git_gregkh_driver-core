@@ -142,7 +142,7 @@ static void queue_event(struct snd_motu *motu, u8 msg_type, u8 identifier0, u8 i
 	parser->push_pos = pos;
 }
 
-void snd_motu_register_dsp_message_parser_parse(const struct amdtp_stream *s,
+void snd_motu_register_dsp_message_parser_parse(struct amdtp_stream *s,
 						const struct pkt_desc *desc, unsigned int count)
 {
 	struct snd_motu *motu = container_of(s, struct snd_motu, tx_stream);
