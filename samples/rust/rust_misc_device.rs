@@ -105,6 +105,7 @@ use kernel::{
     prelude::*,
     sync::{aref::ARef, Mutex},
     uaccess::{UserSlice, UserSliceReader, UserSliceWriter},
+    validate::Untrusted,
 };
 
 const RUST_MISC_DEV_HELLO: u32 = _IO('|' as u32, 0x80);
@@ -141,7 +142,7 @@ impl kernel::InPlaceModule for RustMiscDeviceModule {
 
 struct Inner {
     value: i32,
-    buffer: KVVec<u8>,
+    buffer: Untrusted<KVec<u8>>,
 }
 
 #[pin_data(PinnedDrop)]
@@ -165,7 +166,7 @@ impl MiscDevice for RustMiscDevice {
                 RustMiscDevice {
                     inner <- new_mutex!(Inner {
                         value: 0_i32,
-                        buffer: KVVec::new(),
+                        buffer: Untrusted::new(KVec::new()),
                     }),
                     dev: dev,
                 }

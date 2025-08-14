@@ -11,9 +11,11 @@ use crate::{
     alloc::{Allocator, Flags},
     bindings,
     prelude::*,
+    transmute::cast_slice_mut,
     types::Opaque,
+    validate::Untrusted,
 };
-use core::{marker::PhantomData, mem::MaybeUninit, ptr, slice};
+use core::{marker::PhantomData, mem::MaybeUninit, slice};
 
 const ITER_SOURCE: bool = bindings::ITER_SOURCE != 0;
 const ITER_DEST: bool = bindings::ITER_DEST != 0;
@@ -126,11 +128,10 @@ impl<'data> IovIterSource<'data> {
     ///
     /// Returns the number of bytes that have been copied.
     #[inline]
-    pub fn copy_from_iter(&mut self, out: &mut [u8]) -> usize {
-        // SAFETY: `Self::copy_from_iter_raw` guarantees that it will not write any uninitialized
-        // bytes in the provided buffer, so `out` is still a valid `u8` slice after this call.
-        let out = unsafe { &mut *(ptr::from_mut(out) as *mut [MaybeUninit<u8>]) };
-
+    pub fn copy_from_iter(&mut self, out: &mut [Untrusted<u8>]) -> usize {
+        // CAST: The call to `copy_from_iter_raw` below only writes initialized values.
+        // SAFETY: `Untrusted<T>` and `MaybeUninit<T>` transparently wrap a `T`.
+        let out: &mut [MaybeUninit<Untrusted<u8>>] = unsafe { cast_slice_mut(out) };
         self.copy_from_iter_raw(out).len()
     }
 
@@ -140,7 +141,7 @@ impl<'data> IovIterSource<'data> {
     #[inline]
     pub fn copy_from_iter_vec<A: Allocator>(
         &mut self,
-        out: &mut Vec<u8, A>,
+        out: &mut Vec<Untrusted<u8>, A>,
         flags: Flags,
     ) -> Result<usize> {
         out.reserve(self.len(), flags)?;
@@ -161,7 +162,10 @@ impl<'data> IovIterSource<'data> {
     ///
     /// This will never write uninitialized bytes to the provided buffer.
     #[inline]
-    pub fn copy_from_iter_raw(&mut self, out: &mut [MaybeUninit<u8>]) -> &mut [u8] {
+    pub fn copy_from_iter_raw(
+        &mut self,
+        out: &mut [MaybeUninit<Untrusted<u8>>],
+    ) -> &mut [Untrusted<u8>] {
         let capacity = out.len();
         let out = out.as_mut_ptr().cast::<u8>();
 
@@ -175,7 +179,7 @@ impl<'data> IovIterSource<'data> {
 
         // SAFETY: The underlying C api guarantees that initialized bytes have been written to the
         // first `len` bytes of the spare capacity.
-        unsafe { slice::from_raw_parts_mut(out, len) }
+        unsafe { slice::from_raw_parts_mut(out.cast(), len) }
     }
 }
 
@@ -278,7 +282,7 @@ impl<'data> IovIterDest<'data> {
     /// Returns the number of bytes that were written. If this is shorter than the provided slice,
     /// then no more bytes can be written.
     #[inline]
-    pub fn copy_to_iter(&mut self, input: &[u8]) -> usize {
+    pub fn copy_to_iter(&mut self, input: &[Untrusted<u8>]) -> usize {
         // SAFETY:
         // * By the type invariants, it is still valid to write to this IO vector.
         // * `input` is valid for `input.len()` bytes.
@@ -292,7 +296,11 @@ impl<'data> IovIterDest<'data> {
     /// that the file will appear to contain `contents` even if takes multiple reads to read the
     /// entire file.
     #[inline]
-    pub fn simple_read_from_buffer(&mut self, ppos: &mut i64, contents: &[u8]) -> Result<usize> {
+    pub fn simple_read_from_buffer(
+        &mut self,
+        ppos: &mut i64,
+        contents: &[Untrusted<u8>],
+    ) -> Result<usize> {
         if *ppos < 0 {
             return Err(EINVAL);
         }
