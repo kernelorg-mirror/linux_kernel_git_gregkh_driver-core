@@ -2091,8 +2091,8 @@ static inline void bpf_prog_put_recursion_context(struct bpf_prog *prog)
 		__register_bpf_struct_ops(st_ops);			\
 	})
 #define BPF_MODULE_OWNER ((void *)((0xeB9FUL << 2) + POISON_POINTER_DELTA))
-bool bpf_struct_ops_get(const void *kdata);
-void bpf_struct_ops_put(const void *kdata);
+bool bpf_struct_ops_get(void *kdata);
+void bpf_struct_ops_put(void *kdata);
 int bpf_struct_ops_supported(const struct bpf_struct_ops *st_ops, u32 moff);
 int bpf_struct_ops_map_sys_lookup_elem(struct bpf_map *map, void *key,
 				       void *value);
@@ -2103,14 +2103,14 @@ int bpf_struct_ops_prepare_trampoline(struct bpf_tramp_links *tlinks,
 				      void **image, u32 *image_off,
 				      bool allow_alloc);
 void bpf_struct_ops_image_free(void *image);
-static inline bool bpf_try_module_get(const void *data, struct module *owner)
+static inline bool bpf_try_module_get(void *data, struct module *owner)
 {
 	if (owner == BPF_MODULE_OWNER)
 		return bpf_struct_ops_get(data);
 	else
 		return try_module_get(owner);
 }
-static inline void bpf_module_put(const void *data, struct module *owner)
+static inline void bpf_module_put(void *data, struct module *owner)
 {
 	if (owner == BPF_MODULE_OWNER)
 		bpf_struct_ops_put(data);
@@ -2146,11 +2146,11 @@ void bpf_map_struct_ops_info_fill(struct bpf_map_info *info, struct bpf_map *map
 void bpf_struct_ops_desc_release(struct bpf_struct_ops_desc *st_ops_desc);
 #else
 #define register_bpf_struct_ops(st_ops, type) ({ (void *)(st_ops); 0; })
-static inline bool bpf_try_module_get(const void *data, struct module *owner)
+static inline bool bpf_try_module_get(void *data, struct module *owner)
 {
 	return try_module_get(owner);
 }
-static inline void bpf_module_put(const void *data, struct module *owner)
+static inline void bpf_module_put(void *data, struct module *owner)
 {
 	module_put(owner);
 }

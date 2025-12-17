@@ -189,7 +189,7 @@ static int array_map_get_hash(struct bpf_map *map, u32 hash_buf_size,
 static int array_map_direct_value_addr(const struct bpf_map *map, u64 *imm,
 				       u32 off)
 {
-	struct bpf_array *array = container_of(map, struct bpf_array, map);
+	const struct bpf_array *array = container_of(map, struct bpf_array, map);
 
 	if (map->max_entries != 1)
 		return -ENOTSUPP;
@@ -203,7 +203,7 @@ static int array_map_direct_value_addr(const struct bpf_map *map, u64 *imm,
 static int array_map_direct_value_meta(const struct bpf_map *map, u64 imm,
 				       u32 *off)
 {
-	struct bpf_array *array = container_of(map, struct bpf_array, map);
+	const struct bpf_array *array = container_of(map, struct bpf_array, map);
 	u64 base = (unsigned long)array->value;
 	u64 range = array->elem_size;
 
@@ -779,7 +779,7 @@ static long bpf_for_each_array_elem(struct bpf_map *map, bpf_callback_t callback
 
 static u64 array_map_mem_usage(const struct bpf_map *map)
 {
-	struct bpf_array *array = container_of(map, struct bpf_array, map);
+	const struct bpf_array *array = container_of(map, struct bpf_array, map);
 	bool percpu = map->map_type == BPF_MAP_TYPE_PERCPU_ARRAY;
 	u32 elem_size = array->elem_size;
 	u64 entries = map->max_entries;

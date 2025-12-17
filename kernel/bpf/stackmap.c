@@ -765,7 +765,7 @@ static void stack_map_free(struct bpf_map *map)
 
 static u64 stack_map_mem_usage(const struct bpf_map *map)
 {
-	struct bpf_stack_map *smap = container_of(map, struct bpf_stack_map, map);
+	const struct bpf_stack_map *smap = container_of(map, struct bpf_stack_map, map);
 	u64 value_size = map->value_size;
 	u64 n_buckets = smap->n_buckets;
 	u64 enties = map->max_entries;

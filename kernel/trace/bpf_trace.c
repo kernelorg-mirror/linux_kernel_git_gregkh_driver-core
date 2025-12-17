@@ -2405,7 +2405,7 @@ static int bpf_kprobe_multi_link_fill_link_info(const struct bpf_link *link,
 {
 	u64 __user *ucookies = u64_to_user_ptr(info->kprobe_multi.cookies);
 	u64 __user *uaddrs = u64_to_user_ptr(info->kprobe_multi.addrs);
-	struct bpf_kprobe_multi_link *kmulti_link;
+	const struct bpf_kprobe_multi_link *kmulti_link;
 	u32 ucount = info->kprobe_multi.count;
 	int err = 0, i;
 
@@ -2454,7 +2454,7 @@ static int bpf_kprobe_multi_link_fill_link_info(const struct bpf_link *link,
 static void bpf_kprobe_multi_show_fdinfo(const struct bpf_link *link,
 					 struct seq_file *seq)
 {
-	struct bpf_kprobe_multi_link *kmulti_link;
+	const struct bpf_kprobe_multi_link *kmulti_link;
 	bool has_cookies;
 
 	kmulti_link = container_of(link, struct bpf_kprobe_multi_link, link);
@@ -3030,7 +3030,7 @@ static int bpf_uprobe_multi_link_fill_link_info(const struct bpf_link *link,
 static void bpf_uprobe_multi_show_fdinfo(const struct bpf_link *link,
 					 struct seq_file *seq)
 {
-	struct bpf_uprobe_multi_link *umulti_link;
+	const struct bpf_uprobe_multi_link *umulti_link;
 	char *p, *buf;
 	pid_t pid;
 

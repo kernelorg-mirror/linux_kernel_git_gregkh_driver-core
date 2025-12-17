@@ -763,7 +763,7 @@ static int trie_check_btf(struct bpf_map *map,
 
 static u64 trie_mem_usage(const struct bpf_map *map)
 {
-	struct lpm_trie *trie = container_of(map, struct lpm_trie, map);
+	const struct lpm_trie *trie = container_of(map, struct lpm_trie, map);
 	u64 elem_size;
 
 	elem_size = sizeof(struct lpm_trie_node) + trie->data_size +

@@ -191,7 +191,7 @@ static int bloom_map_check_btf(struct bpf_map *map,
 
 static u64 bloom_map_mem_usage(const struct bpf_map *map)
 {
-	struct bpf_bloom_filter *bloom;
+	const struct bpf_bloom_filter *bloom;
 	u64 bitset_bytes;
 
 	bloom = container_of(map, struct bpf_bloom_filter, map);

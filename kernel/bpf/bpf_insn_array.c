@@ -119,7 +119,7 @@ static u64 insn_array_mem_usage(const struct bpf_map *map)
 
 static int insn_array_map_direct_value_addr(const struct bpf_map *map, u64 *imm, u32 off)
 {
-	struct bpf_insn_array *insn_array = cast_insn_array(map);
+	const struct bpf_insn_array *insn_array = cast_insn_array(map);
 
 	if ((off % sizeof(long)) != 0 ||
 	    (off / sizeof(long)) >= map->max_entries)

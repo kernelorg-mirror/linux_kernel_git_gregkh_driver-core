@@ -435,7 +435,7 @@ out_unlock:
 static void bpf_iter_link_show_fdinfo(const struct bpf_link *link,
 				      struct seq_file *seq)
 {
-	struct bpf_iter_link *iter_link =
+	const struct bpf_iter_link *iter_link =
 		container_of(link, struct bpf_iter_link, link);
 	bpf_iter_show_fdinfo_t show_fdinfo;
 
@@ -451,7 +451,7 @@ static void bpf_iter_link_show_fdinfo(const struct bpf_link *link,
 static int bpf_iter_link_fill_link_info(const struct bpf_link *link,
 					struct bpf_link_info *info)
 {
-	struct bpf_iter_link *iter_link =
+	const struct bpf_iter_link *iter_link =
 		container_of(link, struct bpf_iter_link, link);
 	char __user *ubuf = u64_to_user_ptr(info->iter.target_name);
 	bpf_iter_fill_link_info_t fill_link_info;

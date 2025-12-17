@@ -37,10 +37,11 @@ static inline struct tcx_entry *tcx_entry(struct bpf_mprog_entry *entry)
 	return container_of(bundle, struct tcx_entry, bundle);
 }
 
-static inline struct tcx_link *tcx_link(const struct bpf_link *link)
-{
-	return container_of(link, struct tcx_link, link);
-}
+#define tcx_link(l) container_of_const(l, struct tcx_link, link)
+//static inline struct tcx_link *tcx_link(struct bpf_link *link)
+//{
+//	return container_of(link, struct tcx_link, link);
+//}
 
 void tcx_inc(void);
 void tcx_dec(void);

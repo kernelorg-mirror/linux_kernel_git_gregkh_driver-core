@@ -3527,7 +3527,7 @@ static void bpf_tracing_link_dealloc(struct bpf_link *link)
 static void bpf_tracing_link_show_fdinfo(const struct bpf_link *link,
 					 struct seq_file *seq)
 {
-	struct bpf_tracing_link *tr_link =
+	const struct bpf_tracing_link *tr_link =
 		container_of(link, struct bpf_tracing_link, link.link);
 	u32 target_btf_id, target_obj_id;
 
@@ -3547,7 +3547,7 @@ static void bpf_tracing_link_show_fdinfo(const struct bpf_link *link,
 static int bpf_tracing_link_fill_link_info(const struct bpf_link *link,
 					   struct bpf_link_info *info)
 {
-	struct bpf_tracing_link *tr_link =
+	const struct bpf_tracing_link *tr_link =
 		container_of(link, struct bpf_tracing_link, link.link);
 
 	info->tracing.attach_type = link->attach_type;
@@ -3816,7 +3816,7 @@ static void bpf_raw_tp_link_dealloc(struct bpf_link *link)
 static void bpf_raw_tp_link_show_fdinfo(const struct bpf_link *link,
 					struct seq_file *seq)
 {
-	struct bpf_raw_tp_link *raw_tp_link =
+	const struct bpf_raw_tp_link *raw_tp_link =
 		container_of(link, struct bpf_raw_tp_link, link);
 
 	seq_printf(seq,
@@ -3848,7 +3848,7 @@ static int bpf_copy_to_user(char __user *ubuf, const char *buf, u32 ulen,
 static int bpf_raw_tp_link_fill_link_info(const struct bpf_link *link,
 					  struct bpf_link_info *info)
 {
-	struct bpf_raw_tp_link *raw_tp_link =
+	const struct bpf_raw_tp_link *raw_tp_link =
 		container_of(link, struct bpf_raw_tp_link, link);
 	char __user *ubuf = u64_to_user_ptr(info->raw_tracepoint.tp_name);
 	const char *tp_name = raw_tp_link->btp->tp->name;
@@ -4093,7 +4093,7 @@ static int bpf_perf_link_fill_perf_event(const struct perf_event *event,
 static int bpf_perf_link_fill_link_info(const struct bpf_link *link,
 					struct bpf_link_info *info)
 {
-	struct bpf_perf_link *perf_link;
+	const struct bpf_perf_link *perf_link;
 	const struct perf_event *event;
 
 	perf_link = container_of(link, struct bpf_perf_link, link);
@@ -4161,7 +4161,7 @@ static void bpf_probe_link_show_fdinfo(const struct perf_event *event,
 static void bpf_perf_link_show_fdinfo(const struct bpf_link *link,
 				      struct seq_file *seq)
 {
-	struct bpf_perf_link *perf_link;
+	const struct bpf_perf_link *perf_link;
 	const struct perf_event *event;
 
 	perf_link = container_of(link, struct bpf_perf_link, link);

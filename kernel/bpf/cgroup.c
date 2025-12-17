@@ -1425,7 +1425,7 @@ static int bpf_cgroup_link_detach(struct bpf_link *link)
 static void bpf_cgroup_link_show_fdinfo(const struct bpf_link *link,
 					struct seq_file *seq)
 {
-	struct bpf_cgroup_link *cg_link =
+	const struct bpf_cgroup_link *cg_link =
 		container_of(link, struct bpf_cgroup_link, link);
 	u64 cg_id = 0;
 
@@ -1444,7 +1444,7 @@ static void bpf_cgroup_link_show_fdinfo(const struct bpf_link *link,
 static int bpf_cgroup_link_fill_link_info(const struct bpf_link *link,
 					  struct bpf_link_info *info)
 {
-	struct bpf_cgroup_link *cg_link =
+	const struct bpf_cgroup_link *cg_link =
 		container_of(link, struct bpf_cgroup_link, link);
 	u64 cg_id = 0;
 

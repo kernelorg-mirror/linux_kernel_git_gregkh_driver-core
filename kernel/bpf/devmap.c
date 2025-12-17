@@ -1052,7 +1052,7 @@ static long dev_hash_map_redirect(struct bpf_map *map, u64 ifindex, u64 flags)
 
 static u64 dev_map_mem_usage(const struct bpf_map *map)
 {
-	struct bpf_dtab *dtab = container_of(map, struct bpf_dtab, map);
+	const struct bpf_dtab *dtab = container_of(map, struct bpf_dtab, map);
 	u64 usage = sizeof(struct bpf_dtab);
 
 	if (map->map_type == BPF_MAP_TYPE_DEVMAP_HASH)

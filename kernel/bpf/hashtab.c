@@ -212,7 +212,7 @@ static struct htab_elem *get_htab_elem(struct bpf_htab *htab, int i)
  * extra elem. LRU itself can remove the least used element, so
  * there is no need for an extra elem during map_update.
  */
-static bool htab_has_extra_elems(struct bpf_htab *htab)
+static bool htab_has_extra_elems(const struct bpf_htab *htab)
 {
 	return !htab_is_percpu(htab) && !htab_is_lru(htab) && !is_fd_htab(htab);
 }

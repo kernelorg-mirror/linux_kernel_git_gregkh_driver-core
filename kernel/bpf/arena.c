@@ -509,7 +509,7 @@ static int arena_map_mmap(struct bpf_map *map, struct vm_area_struct *vma)
 
 static int arena_map_direct_value_addr(const struct bpf_map *map, u64 *imm, u32 off)
 {
-	struct bpf_arena *arena = container_of(map, struct bpf_arena, map);
+	const struct bpf_arena *arena = container_of(map, struct bpf_arena, map);
 
 	if ((u64)off >= arena->user_vm_end - arena->user_vm_start)
 		return -ERANGE;

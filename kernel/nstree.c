@@ -149,21 +149,21 @@ void ns_tree_node_del(struct ns_tree_node *node, struct ns_tree_root *root)
 	list_bidir_del_rcu(&node->ns_list_entry);
 }
 
-static inline struct ns_common *node_to_ns(const struct rb_node *node)
+static inline struct ns_common *node_to_ns(struct rb_node *node)
 {
 	if (!node)
 		return NULL;
 	return rb_entry(node, struct ns_common, ns_tree_node.ns_node);
 }
 
-static inline struct ns_common *node_to_ns_unified(const struct rb_node *node)
+static inline struct ns_common *node_to_ns_unified(struct rb_node *node)
 {
 	if (!node)
 		return NULL;
 	return rb_entry(node, struct ns_common, ns_unified_node.ns_node);
 }
 
-static inline struct ns_common *node_to_ns_owner(const struct rb_node *node)
+static inline struct ns_common *node_to_ns_owner(struct rb_node *node)
 {
 	if (!node)
 		return NULL;
@@ -271,10 +271,10 @@ static int ns_find(const void *key, const struct rb_node *node)
 	return 0;
 }
 
-static int ns_find_unified(const void *key, const struct rb_node *node)
+static int ns_find_unified(const void *key, struct rb_node *node)
 {
 	const u64 ns_id = *(u64 *)key;
-	const struct ns_common *ns = node_to_ns_unified(node);
+	struct ns_common *ns = node_to_ns_unified(node);
 
 	if (ns_id < ns->ns_id)
 		return -1;

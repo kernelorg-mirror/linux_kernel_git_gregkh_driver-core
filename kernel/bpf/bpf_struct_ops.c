@@ -1163,10 +1163,7 @@ const struct bpf_map_ops bpf_struct_ops_map_ops = {
 	.map_btf_id = &bpf_struct_ops_map_btf_ids[0],
 };
 
-/* "const void *" because some subsystem is
- * passing a const (e.g. const struct tcp_congestion_ops *)
- */
-bool bpf_struct_ops_get(const void *kdata)
+bool bpf_struct_ops_get(void *kdata)
 {
 	struct bpf_struct_ops_value *kvalue;
 	struct bpf_struct_ops_map *st_map;
@@ -1180,7 +1177,7 @@ bool bpf_struct_ops_get(const void *kdata)
 }
 EXPORT_SYMBOL_GPL(bpf_struct_ops_get);
 
-void bpf_struct_ops_put(const void *kdata)
+void bpf_struct_ops_put(void *kdata)
 {
 	struct bpf_struct_ops_value *kvalue;
 	struct bpf_struct_ops_map *st_map;
@@ -1194,8 +1191,8 @@ EXPORT_SYMBOL_GPL(bpf_struct_ops_put);
 
 u32 bpf_struct_ops_id(const void *kdata)
 {
-	struct bpf_struct_ops_value *kvalue;
-	struct bpf_struct_ops_map *st_map;
+	const struct bpf_struct_ops_value *kvalue;
+	const struct bpf_struct_ops_map *st_map;
 
 	kvalue = container_of(kdata, struct bpf_struct_ops_value, data);
 	st_map = container_of(kvalue, struct bpf_struct_ops_map, kvalue);
@@ -1232,7 +1229,7 @@ static void bpf_struct_ops_map_link_dealloc(struct bpf_link *link)
 static void bpf_struct_ops_map_link_show_fdinfo(const struct bpf_link *link,
 					    struct seq_file *seq)
 {
-	struct bpf_struct_ops_link *st_link;
+	const struct bpf_struct_ops_link *st_link;
 	struct bpf_map *map;
 
 	st_link = container_of(link, struct bpf_struct_ops_link, link);
@@ -1246,7 +1243,7 @@ static void bpf_struct_ops_map_link_show_fdinfo(const struct bpf_link *link,
 static int bpf_struct_ops_map_link_fill_link_info(const struct bpf_link *link,
 					       struct bpf_link_info *info)
 {
-	struct bpf_struct_ops_link *st_link;
+	const struct bpf_struct_ops_link *st_link;
 	struct bpf_map *map;
 
 	st_link = container_of(link, struct bpf_struct_ops_link, link);
