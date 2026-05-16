@@ -14,6 +14,7 @@ use crate::{
     prelude::*,
     ptr::KnownSize,
     transmute::{AsBytes, FromBytes},
+    validate::Untrusted,
 };
 use core::mem::{size_of, MaybeUninit};
 
@@ -171,7 +172,7 @@ impl UserSlice {
     /// Reads the entirety of the user slice, appending it to the end of the provided buffer.
     ///
     /// Fails with [`EFAULT`] if the read happens on a bad address.
-    pub fn read_all<A: Allocator>(self, buf: &mut Vec<u8, A>, flags: Flags) -> Result {
+    pub fn read_all<A: Allocator>(self, buf: &mut Vec<Untrusted<u8>, A>, flags: Flags) -> Result {
         self.reader().read_all(buf, flags)
     }
 
@@ -262,7 +263,7 @@ impl UserSliceReader {
     /// # Guarantees
     ///
     /// After a successful call to this method, all bytes in `out` are initialized.
-    pub fn read_raw(&mut self, out: &mut [MaybeUninit<u8>]) -> Result {
+    pub fn read_raw(&mut self, out: &mut [MaybeUninit<Untrusted<u8>>]) -> Result {
         let len = out.len();
         let out_ptr = out.as_mut_ptr().cast::<c_void>();
         if len > self.length {
@@ -283,10 +284,10 @@ impl UserSliceReader {
     ///
     /// Fails with [`EFAULT`] if the read happens on a bad address, or if the read goes out of
     /// bounds of this [`UserSliceReader`]. This call may modify `out` even if it returns an error.
-    pub fn read_slice(&mut self, out: &mut [u8]) -> Result {
+    pub fn read_slice(&mut self, out: &mut [Untrusted<u8>]) -> Result {
         // SAFETY: The types are compatible and `read_raw` doesn't write uninitialized bytes to
         // `out`.
-        let out = unsafe { &mut *(core::ptr::from_mut(out) as *mut [MaybeUninit<u8>]) };
+        let out = unsafe { &mut *(core::ptr::from_mut(out) as *mut [MaybeUninit<Untrusted<u8>>]) };
         self.read_raw(out)
     }
 
@@ -296,7 +297,7 @@ impl UserSliceReader {
     /// truncates the read to the boundaries of `self` and `out`.
     ///
     /// On success, returns the number of bytes read.
-    pub fn read_slice_partial(&mut self, out: &mut [u8], offset: usize) -> Result<usize> {
+    pub fn read_slice_partial(&mut self, out: &mut [Untrusted<u8>], offset: usize) -> Result<usize> {
         let end = offset.saturating_add(self.len()).min(out.len());
 
         let Some(dst) = out.get_mut(offset..end) else {
@@ -315,7 +316,7 @@ impl UserSliceReader {
     /// This is equivalent to C's `simple_write_to_buffer()`.
     ///
     /// On success, returns the number of bytes read.
-    pub fn read_slice_file(&mut self, out: &mut [u8], offset: &mut file::Offset) -> Result<usize> {
+    pub fn read_slice_file(&mut self, out: &mut [Untrusted<u8>], offset: &mut file::Offset) -> Result<usize> {
         if offset.is_negative() {
             return Err(EINVAL);
         }
@@ -367,7 +368,7 @@ impl UserSliceReader {
     /// Reads the entirety of the user slice, appending it to the end of the provided buffer.
     ///
     /// Fails with [`EFAULT`] if the read happens on a bad address.
-    pub fn read_all<A: Allocator>(mut self, buf: &mut Vec<u8, A>, flags: Flags) -> Result {
+    pub fn read_all<A: Allocator>(mut self, buf: &mut Vec<Untrusted<u8>, A>, flags: Flags) -> Result {
         let len = self.length;
         buf.reserve(len, flags)?;
 
